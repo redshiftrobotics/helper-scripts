@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+
+set -e
+
+##
+# Make a new FTC app from 
+##
+
+if [ "$1" = "--help" ]; then
+	cat <<EOF
+Usage:
+
+	$0 name
+
+Description:
+
+	Create a new FTC app in ./name, with a new copy of the ftc_app source code
+	and a fresh git repository.
+
+Author:
+
+	Ari Porad (@ariporad) <ariporad@seattleacademy.org>
+
+License:
+
+	MIT: https://mit-license.org
+
+EOF
+	exit
+fi
+
+echo "Creating new FTC app: $1..."
+echo ""
+
+git clone https://github.com/redshiftrobotics/ftc_app "$1"
+cd "$1"
+ftc_sdk_commit_message="Cloned from redshiftrobotics/ftc_app $(git log "$(git rev-list --max-parents=0 master)")"
+rm -rf .git
+git init
+git add .
+git commit -am "chore: clone from ftc_app" -m "$ftc_sdk_commit_message"  > /dev/null
+
+cat <<EOF
+
+--------------------------------------------------------------------------------
+
+# New FTC App Created!
+
+Your app ($1) has been created with the latest copy of the ftc_app source and a
+fresh git repository. To open it, run:
+
+	$ cd $1
+
+EOF
+
+if command -v hub 2>&1 > /dev/null; then
+
+cat <<EOF
+NOTE: Your app does not have a repository on Github. If you want one, then run:
+
+	$ hub create -oc redshiftrobotics/$1
+
+See \`man hub-create\` for more information.
+EOF
+
+else
+
+cat <<EOF
+NOTE: Your app does not have a repository on Github. If you want one, then go to:
+
+	https://github.com/organizations/redshiftrobotics/repositories/new
+
+DO NOT SELECT "Initialize this repository with a README."
+
+Then (assuming that the Github repo you created is redshiftrobotics/$1), run this:
+
+	$ git remote add origin https://github.com/redshiftrobotics/$1
+	$ git push -u origin master
+
+To push your empty repository to Github.
+EOF
+
+fi
